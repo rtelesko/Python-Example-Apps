@@ -2,10 +2,16 @@ import datetime
 import json
 import random
 from pathlib import Path
+from random import choice
 
 
 class TooManyTipsException(Exception):
     """Exception raised for more than 20 tips demanded."""
+    pass
+
+
+class SwisslosNumberTipsException(Exception):
+    """ Minimum number of tips for Swisslos is 2 """
     pass
 
 
@@ -90,40 +96,50 @@ def print_tips(list_of_tips):
 
 
 def distribution_analysis(list_of_tips):
-    """ Checks potential problems in the distribution
-        Issue 1: A tip has only odd or even numbers
-        Issue 2: three or more consecutive numbers
+    """Checks potential problems in the distribution:
+       Issue 1: any tip has only odd or only even numbers
+       Issue 2: any tip has three or more consecutive numbers
     """
     print("Summary of distribution analysis for tips:")
-    # Issue 1
-    all_numbers = [number for tip in list_of_tips for number in tip]
-    odd_numbers = [number for number in all_numbers if number % 2 != 0]
-    even_numbers = [number for number in all_numbers if number % 2 == 0]
 
-    if len(odd_numbers) == 0 or len(even_numbers) == 0:
-        print("Problem: List of tips has only odd or even numbers.")
-    else:
-        print("No problem regarding distribution of odd / even numbers")
+    any_all_odd_or_even = False
+    any_consecutive = False
 
-    # Issue 2
     for i, tip in enumerate(list_of_tips, start=1):
-        consecutive_count = 1
-        has_consecutive = False
+        # Issue 1: per-tip all odd or all even
+        odds = sum(n % 2 != 0 for n in tip)
+        evens = len(tip) - odds
+        if odds == 0 or evens == 0:
+            print(f"Warning: Tip {i} has only {'even' if odds == 0 else 'odd'} numbers.")
+            any_all_odd_or_even = True
 
-        # The tips are already sorted, so we can directly iterate
+        # Issue 2: per-tip 3+ consecutive numbers
+        consecutive_count = 1
         for j in range(len(tip) - 1):
             if tip[j + 1] == tip[j] + 1:
                 consecutive_count += 1
+                if consecutive_count >= 3:
+                    print(f"Warning: Tip {i} has 3 or more consecutive numbers.")
+                    any_consecutive = True
+                    break
             else:
                 consecutive_count = 1
 
-            if consecutive_count >= 3:
-                print(f"Warning: Tip {i} has 3 or more consecutive numbers.")
-                has_consecutive = True
-                break  # Exit the inner loop once found
+    if not any_all_odd_or_even:
+        print("No tip has only odd or only even numbers.")
 
-    if not has_consecutive:
+    if not any_consecutive:
         print("No tip has 3 or more consecutive numbers. Great!")
+
+
+def calculate_costs(list_of_tips):
+    """
+    Calculate the costs for chosen number of tips
+    """
+    if choice == "1":
+        print(f"Costs for the Swisslos tips: {2.5 * len(list_of_tips)} CHF")
+    else:
+        print(f"Costs for the EuroMillions tips: {3.5 * len(list_of_tips)} CHF")
 
 
 def user_input():
@@ -136,8 +152,10 @@ def user_input():
             number_tips = int(input("Please enter number of tips: "))
             if number_tips <= 0:
                 raise ValueError("Number must be positive!")
-            if number_tips > 20:
-                raise ValueError("Not more than 20 tips possible!")
+            if number_tips > 50:
+                raise ValueError("Not more than 50 tips possible!")
+            if number_tips == 1 and choice == "1":
+                raise SwisslosNumberTipsException("Minimum number is two!")
 
             list_of_tips = generate_unique_tips(number_tips)
             print_tips(list_of_tips)
@@ -148,6 +166,7 @@ def user_input():
             else:
                 print("Validation: Valid tip set!")
                 distribution_analysis(list_of_tips)
+                calculate_costs(list_of_tips)
             break
         except ValueError as e:
             number_attempts += 1
@@ -155,7 +174,11 @@ def user_input():
                   f"You have overall 10 attempts.")
             print(f"Attempt number: {number_attempts}")
         except TooManyTipsException as e:
-            print(f"Invalid input ({e}). Please enter a positive integer with a value not more than 20. "
+            print(f"Invalid input ({e}). Please enter a positive integer with a value not more than 50. "
+                  f"You have overall 10 attempts.")
+            print(f"Attempt number: {number_attempts}")
+        except SwisslosNumberTipsException as e:
+            print(f"Invalid input ({e}). Please enter a number of tips for Swisslos bigger than 1. "
                   f"You have overall 10 attempts.")
             print(f"Attempt number: {number_attempts}")
 
