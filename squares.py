@@ -13,8 +13,8 @@ def put_number_to_list(number_list, number):
 
 def put_list_to_dictionary(number_list, number_dict):
     """ Makes a dictionary out of a list """
-    for key, value in enumerate(number_list):
-        number_dict[key] = value
+    for i in range(len(number_list)):
+        number_dict[i] = number_list[i]
     return number_dict
 
 
@@ -59,4 +59,3 @@ if __name__ == "__main__":
     print("All the numbers as a tuple are:", number_tuple)
 
 pydoc.writedoc('squares')
-
